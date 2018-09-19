@@ -23,26 +23,32 @@ class Board:
     def pieces(self):
         return self.__pieces
 
-    def add_piece(self, piece):
-        if piece.x < 0 or piece.x >= self.size or piece.y < 0 or piece.y >= self.size: 
-            raise ValueError("Piece position is out of bound")
+    def is_placement_valid(self, x, y):
+        if x < 0 or x >= self.size or y < 0 or y >= self.size: 
+            return False
         for placed_piece in self.pieces:
-            if placed_piece.x == piece.x and placed_piece.y == piece.y:
-                raise ValueError("Position already filled")
-        self.pieces.append(piece) 
+            if placed_piece.x == x and placed_piece.y == y:
+                return False
+        return True
+
+    def add_piece(self, piece):
+        if self.is_placement_valid(piece.x, piece.y):
+            self.pieces.append(piece)
+        else:
+            raise ValueError("Piece's position isn't valid")
 
     def random_fill(self, count):
         while len(self.pieces) < count:
             try:
                 choice = randint(0, 3)
                 if choice == 0:
-                    self.add_piece(Queen(bool(getrandbits(1)), randint(0, self.size - 1), randint(0, self.size - 1)))
+                    self.add_piece(Queen(self, bool(getrandbits(1)), randint(0, self.size - 1), randint(0, self.size - 1)))
                 elif choice == 1:
-                    self.add_piece(Bishop(bool(getrandbits(1)), randint(0, self.size - 1), randint(0, self.size - 1)))
+                    self.add_piece(Bishop(self, bool(getrandbits(1)), randint(0, self.size - 1), randint(0, self.size - 1)))
                 elif choice == 2:
-                    self.add_piece(Rook(bool(getrandbits(1)), randint(0, self.size - 1), randint(0, self.size - 1)))
+                    self.add_piece(Rook(self, bool(getrandbits(1)), randint(0, self.size - 1), randint(0, self.size - 1)))
                 else:
-                    self.add_piece(Knight(bool(getrandbits(1)), randint(0, self.size - 1), randint(0, self.size - 1)))
+                    self.add_piece(Knight(self, bool(getrandbits(1)), randint(0, self.size - 1), randint(0, self.size - 1)))
             except:
                 pass
 
@@ -50,7 +56,7 @@ class Board:
         ff_tot = 0 # ff = friendly fire
         kill_tot = 0
         for piece in self.pieces:
-            ff, kill = piece.count_targets(self)
+            ff, kill = piece.count_targets()
             ff_tot += ff
             kill_tot += kill
         return ff_tot, kill_tot
@@ -61,12 +67,17 @@ class Board:
 
 
 class Piece:
-    def __init__(self, color, x, y):
+    def __init__(self, board, color, x, y):
+        self._board = board
         self._color = color # True = white
         self._x = x
         self._y = y
         # Using a chessboard convention, (0, 0) is the bottom-left corner
     
+    @property
+    def board(self):
+        return self._board
+
     @property
     def color(self):
         return self._color
@@ -88,11 +99,14 @@ class Piece:
         self._y = new_y
 
     def move(self, x, y):
-        self.x = x
-        self.y = y
+        if self.board.is_placement_valid(x, y):
+            self.x = x
+            self.y = y
+        else:
+            raise ValueError("Piece's position isn't valid")
 
 
-def count_hv_targets(piece, board):
+def count_hv_targets(board, piece):
     # Count horizontal and vertical targets
     ff = 0 
     kill = 0 
@@ -128,7 +142,7 @@ def count_hv_targets(piece, board):
     return ff, kill
 
 
-def count_diag_targets(piece, board):
+def count_diag_targets(board, piece):
     # Count diagonal targets
     ff = 0
     kill = 0
@@ -167,39 +181,39 @@ def count_diag_targets(piece, board):
         
 
 class Queen(Piece):
-    def __init__(self, color, x, y):
-        Piece.__init__(self, color, x, y)
+    def __init__(self, board, color, x, y):
+        Piece.__init__(self, board, color, x, y)
     
-    def count_targets(self, board): 
-        ff_hv, kill_hv = count_hv_targets(self, board)
-        ff_diag, kill_diag = count_diag_targets(self, board)
+    def count_targets(self): 
+        ff_hv, kill_hv = count_hv_targets(self.board, self)
+        ff_diag, kill_diag = count_diag_targets(self.board, self)
         return ff_hv + ff_diag, kill_hv + kill_diag
 
 
 class Rook(Piece):
-    def __init__(self, color, x, y):
-        Piece.__init__(self, color, x, y)
+    def __init__(self, board, color, x, y):
+        Piece.__init__(self, board, color, x, y)
     
-    def count_targets(self, board): 
-        return count_hv_targets(self, board)
+    def count_targets(self): 
+        return count_hv_targets(self.board, self)
 
 
 class Bishop(Piece):
-    def __init__(self, color, x, y):
-        Piece.__init__(self, color, x, y)
+    def __init__(self, board, color, x, y):
+        Piece.__init__(self, board, color, x, y)
     
-    def count_targets(self, board): 
-        return count_diag_targets(self, board)
+    def count_targets(self): 
+        return count_diag_targets(self.board, self)
 
 
 class Knight(Piece):
-    def __init__(self, color, x, y):
-        Piece.__init__(self, color, x, y)
+    def __init__(self, board, color, x, y):
+        Piece.__init__(self, board, color, x, y)
 
-    def count_targets(self, board): 
+    def count_targets(self): 
         ff = 0
         kill = 0
-        for target in board.pieces:
+        for target in self.board.pieces:
             if target == self: continue
             if self.x - 2 >= 0:
                 if self.y - 1 >= 0:
@@ -207,7 +221,7 @@ class Knight(Piece):
                         if target.color == self.color: ff += 1
                         else: kill += 1
                         continue
-                if self.y + 1 < board.size:
+                if self.y + 1 < self.board.size:
                     if target.x == self.x - 2 and target.y == self.y + 1:
                         if target.color == self.color: ff += 1
                         else: kill += 1
@@ -218,36 +232,30 @@ class Knight(Piece):
                         if target.color == self.color: ff += 1
                         else: kill += 1
                         continue
-                if self.y + 2 < board.size:
+                if self.y + 2 < self.board.size:
                     if target.x == self.x - 1 and target.y == self.y + 2:
                         if target.color == self.color: ff += 1
                         else: kill += 1
                         continue
-            if self.x + 1 < board.size:
+            if self.x + 1 < self.board.size:
                 if self.y - 2 >= 0:
                     if target.x == self.x + 1 and target.y == self.y - 2:
                         if target.color == self.color: ff += 1
                         else: kill += 1
                         continue
-                if self.y + 2 < board.size:
+                if self.y + 2 < self.board.size:
                     if target.x == self.x + 1 and target.y == self.y + 2:
                         if target.color == self.color: ff += 1
                         else: kill += 1
                         continue
-            if self.x + 2 < board.size:
+            if self.x + 2 < self.board.size:
                 if self.y - 1 >= 0:
                     if target.x == self.x + 2 and target.y == self.y - 1:
                         if target.color == self.color: ff += 1
                         else: kill += 1
                         continue
-                if self.y + 1 < board.size:
+                if self.y + 1 < self.board.size:
                     if target.x == self.x + 2 and target.y == self.y + 1:
                         if target.color == self.color: ff += 1
                         else: kill += 1
         return ff, kill
-
-
-# Quick testing, supposed to be (1, 0)      
-b = Board(8)
-b.random_fill(8)
-print(b.count_total_targets())
