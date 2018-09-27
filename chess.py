@@ -63,8 +63,22 @@ class Board:
     
     def __str__(self):
         # To be implemented
-        pass
+        board = []
+        for i in range(0,8):
+            board.append([])
+            for j in range(0,8):
+                board[i].append('.')
+        
+        for piece in self.pieces:
+            board[piece.x][piece.y] = piece.toStr()
+        
+        ret = ""
+        for i in range(0,8):
+            for j in range(0,8):
+                ret = ret + board[i][j]
+            ret = ret + "\n"
 
+        return ret
 
 class Piece:
     def __init__(self, board, color, x, y):
@@ -189,6 +203,8 @@ class Queen(Piece):
         ff_diag, kill_diag = count_diag_targets(self.board, self)
         return ff_hv + ff_diag, kill_hv + kill_diag
 
+    def toStr(self):
+        return "Q" if self.color else "q"
 
 class Rook(Piece):
     def __init__(self, board, color, x, y):
@@ -196,6 +212,9 @@ class Rook(Piece):
     
     def count_targets(self): 
         return count_hv_targets(self.board, self)
+
+    def toStr(self):
+        return "R" if self.color else "r"
 
 
 class Bishop(Piece):
@@ -205,6 +224,8 @@ class Bishop(Piece):
     def count_targets(self): 
         return count_diag_targets(self.board, self)
 
+    def toStr(self):
+        return "B" if self.color else "b"
 
 class Knight(Piece):
     def __init__(self, board, color, x, y):
@@ -259,3 +280,6 @@ class Knight(Piece):
                         if target.color == self.color: ff += 1
                         else: kill += 1
         return ff, kill
+
+    def toStr(self):
+        return "K" if self.color else "k"

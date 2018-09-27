@@ -3,6 +3,7 @@ import chess
 b = chess.Board(8)
 b.random_fill(8)
 print("Initial (ff, kill):", b.count_total_targets())
+print(b)
 
 score_old = -1
 score = 0
@@ -24,3 +25,4 @@ while score > score_old: # While there exist an improvement that can be made...
 
 # print(b)
 print("Hill-climbed (ff, kill):", b.count_total_targets())
+print(b)
