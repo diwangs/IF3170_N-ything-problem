@@ -9,6 +9,7 @@ Notes:
 '''
 
 from random import randint, getrandbits
+import pickle
 
 class Board:
     def __init__(self, size):
@@ -31,11 +32,13 @@ class Board:
                 return False
         return True
 
+    # doesn't need check position is occupied
+    # use conflict_resolve
     def add_piece(self, piece):
-        if self.is_placement_valid(piece.x, piece.y):
-            self.pieces.append(piece)
-        else:
-            raise ValueError("Piece's position isn't valid")
+        # if self.is_placement_valid(piece.x, piece.y):
+        self.pieces.append(piece)
+        # else:
+        #     raise ValueError("Piece's position isn't valid")
 
     def random_fill(self, count):
         while len(self.pieces) < count:
@@ -51,6 +54,8 @@ class Board:
                     self.add_piece(Knight(self, bool(getrandbits(1)), randint(0, self.size - 1), randint(0, self.size - 1)))
             except:
                 pass
+        # for i in range(count):
+        #     self.add_piece(Queen(self, 0, randint(0, self.size - 1),randint(0, self.size - 1)))
 
     def count_total_targets(self):
         ff_tot = 0 # ff = friendly fire
@@ -61,8 +66,19 @@ class Board:
             kill_tot += kill
         return ff_tot, kill_tot
     
+    def new_random_state(self):
+        temp = pickle.loads(pickle.dumps(self))
+        for piece in temp.pieces:
+            piece.random_move()
+        return temp
+
+    def conflict_resolve(self):
+        for i in range(self.size):
+            for j in range(i+1, self.size):
+                while (self.pieces[i].x == self.pieces[j].x and self.pieces[i].y == self.pieces[j].y):
+                    self.pieces[i].random_move()
+
     def __str__(self):
-        # To be implemented
         board = []
         for i in range(0,8):
             board.append([])
@@ -92,6 +108,10 @@ class Piece:
     def board(self):
         return self._board
 
+    @board.setter
+    def board(self, new_board):
+        self._board = new_board
+
     @property
     def color(self):
         return self._color
@@ -118,6 +138,14 @@ class Piece:
             self.y = y
         else:
             raise ValueError("Piece's position isn't valid")
+
+    def random_move(self):
+        while (True):
+            try:
+                self.move(randint(0, self.board.size - 1), randint(0, self.board.size - 1))
+                break
+            except:
+                pass
 
 
 def count_hv_targets(board, piece):
