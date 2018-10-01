@@ -114,7 +114,7 @@ class GA:
 if __name__ == '__main__':
     b = chess.Board(8)
     # b.random_fill(8)
-    b.fill_piece_from_file(8)
+    b.fill_piece_from_file("input")
     print("Initial Genetic Algorithm (ff, kill):", b.count_total_targets())
     print(b)
 
