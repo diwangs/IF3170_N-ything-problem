@@ -11,11 +11,12 @@ Notes:
 from random import randint, getrandbits
 import pickle
 
+
 class Board:
     def __init__(self, size):
         self.__size = size
         self.__pieces = []
-    
+
     @property
     def size(self):
         return self.__size
@@ -25,7 +26,7 @@ class Board:
         return self.__pieces
 
     def is_placement_valid(self, x, y):
-        if x < 0 or x >= self.size or y < 0 or y >= self.size: 
+        if x < 0 or x >= self.size or y < 0 or y >= self.size:
             return False
         for placed_piece in self.pieces:
             if placed_piece.x == x and placed_piece.y == y:
@@ -45,27 +46,32 @@ class Board:
             try:
                 choice = randint(0, 3)
                 if choice == 0:
-                    self.add_piece(Queen(self, bool(getrandbits(1)), randint(0, self.size - 1), randint(0, self.size - 1)))
+                    self.add_piece(Queen(self, bool(getrandbits(1)), randint(
+                        0, self.size - 1), randint(0, self.size - 1)))
                 elif choice == 1:
-                    self.add_piece(Bishop(self, bool(getrandbits(1)), randint(0, self.size - 1), randint(0, self.size - 1)))
+                    self.add_piece(Bishop(self, bool(getrandbits(1)), randint(
+                        0, self.size - 1), randint(0, self.size - 1)))
                 elif choice == 2:
-                    self.add_piece(Rook(self, bool(getrandbits(1)), randint(0, self.size - 1), randint(0, self.size - 1)))
+                    self.add_piece(Rook(self, bool(getrandbits(1)), randint(
+                        0, self.size - 1), randint(0, self.size - 1)))
                 else:
-                    self.add_piece(Knight(self, bool(getrandbits(1)), randint(0, self.size - 1), randint(0, self.size - 1)))
-            except:
+                    self.add_piece(Knight(self, bool(getrandbits(1)), randint(
+                        0, self.size - 1), randint(0, self.size - 1)))
+            except Exception as e:
                 pass
+        self.conflict_resolve()
         # for i in range(count):
         #     self.add_piece(Queen(self, 0, randint(0, self.size - 1),randint(0, self.size - 1)))
 
     def count_total_targets(self):
-        ff_tot = 0 # ff = friendly fire
+        ff_tot = 0  # ff = friendly fire
         kill_tot = 0
         for piece in self.pieces:
             ff, kill = piece.count_targets()
             ff_tot += ff
             kill_tot += kill
         return ff_tot, kill_tot
-    
+
     def new_random_state(self):
         temp = pickle.loads(pickle.dumps(self))
         for piece in temp.pieces:
@@ -73,37 +79,38 @@ class Board:
         return temp
 
     def conflict_resolve(self):
-        for i in range(self.size):
-            for j in range(i+1, self.size):
+        for i in range(len(self.pieces)):
+            for j in range(i + 1, len(self.pieces)):
                 while (self.pieces[i].x == self.pieces[j].x and self.pieces[i].y == self.pieces[j].y):
                     self.pieces[i].random_move()
 
     def __str__(self):
         board = []
-        for i in range(0,8):
+        for i in range(0, 8):
             board.append([])
-            for j in range(0,8):
+            for j in range(0, 8):
                 board[i].append('.')
-        
+
         for piece in self.pieces:
             board[piece.x][piece.y] = piece.toStr()
-        
+
         ret = ""
-        for i in range(0,8):
-            for j in range(0,8):
+        for i in range(0, 8):
+            for j in range(0, 8):
                 ret = ret + board[i][j]
             ret = ret + "\n"
 
         return ret
 
+
 class Piece:
     def __init__(self, board, color, x, y):
         self._board = board
-        self._color = color # True = white
+        self._color = color  # True = white
         self._x = x
         self._y = y
         # Using a chessboard convention, (0, 0) is the bottom-left corner
-    
+
     @property
     def board(self):
         return self._board
@@ -115,7 +122,7 @@ class Piece:
     @property
     def color(self):
         return self._color
-    
+
     @property
     def x(self):
         return self._x
@@ -142,7 +149,8 @@ class Piece:
     def random_move(self):
         while (True):
             try:
-                self.move(randint(0, self.board.size - 1), randint(0, self.board.size - 1))
+                self.move(randint(0, self.board.size - 1),
+                          randint(0, self.board.size - 1))
                 break
             except:
                 pass
@@ -150,9 +158,9 @@ class Piece:
 
 def count_hv_targets(board, piece):
     # Count horizontal and vertical targets
-    ff = 0 
-    kill = 0 
-    s_check = True # Whether we should continue checking south
+    ff = 0
+    kill = 0
+    s_check = True  # Whether we should continue checking south
     n_check = True
     w_check = True
     e_check = True
@@ -160,26 +168,34 @@ def count_hv_targets(board, piece):
         for i in range(1, board.size):
             if piece.x - i >= 0 and s_check:
                 if target.x == piece.x - i and target.y == piece.y:
-                    if target.color == piece.color: ff += 1 
-                    else: kill += 1
+                    if target.color == piece.color:
+                        ff += 1
+                    else:
+                        kill += 1
                     s_check = False
                     continue
             if piece.x + i < board.size and n_check:
                 if target.x == piece.x + i and target.y == piece.y:
-                    if target.color == piece.color: ff += 1 
-                    else: kill += 1
+                    if target.color == piece.color:
+                        ff += 1
+                    else:
+                        kill += 1
                     n_check = False
                     continue
             if piece.y - i >= 0 and w_check:
                 if target.x == piece.x and target.y == piece.y - i:
-                    if target.color == piece.color: ff += 1 
-                    else: kill += 1
+                    if target.color == piece.color:
+                        ff += 1
+                    else:
+                        kill += 1
                     w_check = False
                     continue
             if piece.y + i < board.size and e_check:
                 if target.x == piece.x and target.y == piece.y + i:
-                    if target.color == piece.color: ff += 1 
-                    else: kill += 1
+                    if target.color == piece.color:
+                        ff += 1
+                    else:
+                        kill += 1
                     e_check = False
     return ff, kill
 
@@ -188,7 +204,7 @@ def count_diag_targets(board, piece):
     # Count diagonal targets
     ff = 0
     kill = 0
-    sw_check = True # Whether we should continue checking southwest
+    sw_check = True  # Whether we should continue checking southwest
     nw_check = True
     se_check = True
     ne_check = True
@@ -196,37 +212,45 @@ def count_diag_targets(board, piece):
         for i in range(1, board.size):
             if piece.x - i >= 0:
                 if piece.y - i >= 0 and sw_check:
-                    if target.x == piece.x - i and target.y == piece.y - i: 
-                        if target.color == piece.color: ff += 1
-                        else: kill += 1
+                    if target.x == piece.x - i and target.y == piece.y - i:
+                        if target.color == piece.color:
+                            ff += 1
+                        else:
+                            kill += 1
                         sw_check = False
                         continue
                 if piece.y + i < board.size and nw_check:
                     if target.x == piece.x - i and target.y == piece.y + i:
-                        if target.color == piece.color: ff += 1
-                        else: kill += 1
+                        if target.color == piece.color:
+                            ff += 1
+                        else:
+                            kill += 1
                         nw_check = False
                         continue
             if piece.x + i < board.size:
                 if piece.y - i >= 0 and se_check:
-                    if target.x == piece.x + i and target.y == piece.y - i: 
-                        if target.color == piece.color: ff += 1
-                        else: kill += 1
+                    if target.x == piece.x + i and target.y == piece.y - i:
+                        if target.color == piece.color:
+                            ff += 1
+                        else:
+                            kill += 1
                         se_check = False
                         continue
                 if piece.y + i < board.size and ne_check:
-                    if target.x == piece.x + i and target.y == piece.y + i: 
-                        if target.color == piece.color: ff += 1
-                        else: kill += 1
+                    if target.x == piece.x + i and target.y == piece.y + i:
+                        if target.color == piece.color:
+                            ff += 1
+                        else:
+                            kill += 1
                         ne_check = False
     return ff, kill
-        
+
 
 class Queen(Piece):
     def __init__(self, board, color, x, y):
         Piece.__init__(self, board, color, x, y)
-    
-    def count_targets(self): 
+
+    def count_targets(self):
         ff_hv, kill_hv = count_hv_targets(self.board, self)
         ff_diag, kill_diag = count_diag_targets(self.board, self)
         return ff_hv + ff_diag, kill_hv + kill_diag
@@ -234,11 +258,12 @@ class Queen(Piece):
     def toStr(self):
         return "Q" if self.color else "q"
 
+
 class Rook(Piece):
     def __init__(self, board, color, x, y):
         Piece.__init__(self, board, color, x, y)
-    
-    def count_targets(self): 
+
+    def count_targets(self):
         return count_hv_targets(self.board, self)
 
     def toStr(self):
@@ -248,65 +273,83 @@ class Rook(Piece):
 class Bishop(Piece):
     def __init__(self, board, color, x, y):
         Piece.__init__(self, board, color, x, y)
-    
-    def count_targets(self): 
+
+    def count_targets(self):
         return count_diag_targets(self.board, self)
 
     def toStr(self):
         return "B" if self.color else "b"
 
+
 class Knight(Piece):
     def __init__(self, board, color, x, y):
         Piece.__init__(self, board, color, x, y)
 
-    def count_targets(self): 
+    def count_targets(self):
         ff = 0
         kill = 0
         for target in self.board.pieces:
-            if target == self: continue
+            if target == self:
+                continue
             if self.x - 2 >= 0:
                 if self.y - 1 >= 0:
                     if target.x == self.x - 2 and target.y == self.y - 1:
-                        if target.color == self.color: ff += 1
-                        else: kill += 1
+                        if target.color == self.color:
+                            ff += 1
+                        else:
+                            kill += 1
                         continue
                 if self.y + 1 < self.board.size:
                     if target.x == self.x - 2 and target.y == self.y + 1:
-                        if target.color == self.color: ff += 1
-                        else: kill += 1
+                        if target.color == self.color:
+                            ff += 1
+                        else:
+                            kill += 1
                         continue
             if self.x - 1 >= 0:
                 if self.y - 2 >= 0:
                     if target.x == self.x - 1 and target.y == self.y - 2:
-                        if target.color == self.color: ff += 1
-                        else: kill += 1
+                        if target.color == self.color:
+                            ff += 1
+                        else:
+                            kill += 1
                         continue
                 if self.y + 2 < self.board.size:
                     if target.x == self.x - 1 and target.y == self.y + 2:
-                        if target.color == self.color: ff += 1
-                        else: kill += 1
+                        if target.color == self.color:
+                            ff += 1
+                        else:
+                            kill += 1
                         continue
             if self.x + 1 < self.board.size:
                 if self.y - 2 >= 0:
                     if target.x == self.x + 1 and target.y == self.y - 2:
-                        if target.color == self.color: ff += 1
-                        else: kill += 1
+                        if target.color == self.color:
+                            ff += 1
+                        else:
+                            kill += 1
                         continue
                 if self.y + 2 < self.board.size:
                     if target.x == self.x + 1 and target.y == self.y + 2:
-                        if target.color == self.color: ff += 1
-                        else: kill += 1
+                        if target.color == self.color:
+                            ff += 1
+                        else:
+                            kill += 1
                         continue
             if self.x + 2 < self.board.size:
                 if self.y - 1 >= 0:
                     if target.x == self.x + 2 and target.y == self.y - 1:
-                        if target.color == self.color: ff += 1
-                        else: kill += 1
+                        if target.color == self.color:
+                            ff += 1
+                        else:
+                            kill += 1
                         continue
                 if self.y + 1 < self.board.size:
                     if target.x == self.x + 2 and target.y == self.y + 1:
-                        if target.color == self.color: ff += 1
-                        else: kill += 1
+                        if target.color == self.color:
+                            ff += 1
+                        else:
+                            kill += 1
         return ff, kill
 
     def toStr(self):
