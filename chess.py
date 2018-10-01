@@ -27,8 +27,10 @@ class Board:
 
     def fill_piece_from_file(self, filename):
         with open(filename, "r") as f:
+            s = f.read()
+            print("Input file:\n{}".format(s))
             s = [l.strip().split()
-                 for l in f.read().upper().strip().split('\n')]
+                 for l in s.upper().strip().split('\n')]
             for l in s:
                 color, piece, count = l[0], l[1], int(l[2])
                 is_white = (color == "WHITE")
