@@ -25,6 +25,27 @@ class Board:
     def pieces(self):
         return self.__pieces
 
+    def fill_piece_from_file(self, filename):
+        with open(filename, "r") as f:
+            s = [l.strip().split()
+                 for l in f.read().upper().strip().split('\n')]
+            for l in s:
+                color, piece, count = l[0], l[1], int(l[2])
+                is_white = (color == "WHITE")
+                if piece == "KNIGHT":
+                    piece_class = Knight
+                elif piece == "BISHOP":
+                    piece_class = Bishop
+                elif piece == "ROOK":
+                    piece_class = Rook
+                elif piece == "QUEEN":
+                    piece_class = Queen
+                else:
+                    raise Exception("Invalid input file")
+                for _ in range(count):
+                    self.add_piece(piece_class(self, is_white, 0, 0))
+            self.conflict_resolve()
+
     def is_placement_valid(self, x, y):
         if x < 0 or x >= self.size or y < 0 or y >= self.size:
             return False
