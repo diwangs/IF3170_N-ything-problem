@@ -49,21 +49,21 @@ class GA:
         p = self.randomizer.random()
         if (p < self.probability / 100):
             while True:
-                mask = self.randomizer.randint(0, (1 << board.size) - 1)
+                mask = self.randomizer.randint(0, (1 << len(board.pieces)) - 1)
                 # max pieces mutated up to 3 pieces
                 if (bin(mask).count("1") < 4):
                     break
-            for i in range(board.size):
+            for i in range(len(board.pieces)):
                 if (mask & (1 << i)):
                     board.pieces[i].random_move()
         board.conflict_resolve()
         return board
 
     def crossover(self, board1, board2):
-        mask = self.randomizer.randint(0, (1 << board1.size) - 1)
+        mask = self.randomizer.randint(0, (1 << len(board1.pieces)) - 1)
         new_board1 = chess.Board(board1.size)
         new_board2 = chess.Board(board1.size)
-        for i in range(new_board1.size):
+        for i in range(len(board1.pieces)):
             if (mask & (1 << i)):
                 # new_board1.add_piece(deepcopy(board2.pieces[i]))
                 # new_board2.add_piece(deepcopy(board1.pieces[i]))
